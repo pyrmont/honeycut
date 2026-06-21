@@ -1,0 +1,16 @@
+{:name "honeycut"
+ :version "DEVEL"
+ :description "A reader and (lossless) writer of Janet source code"
+ :author "Michael Camilleri"
+ :license "MIT"
+ :url "https://github.com/pyrmont/honeycut"
+ :repo "git+https://github.com/pyrmont/honeycut"
+ :vendored [{:name "testament"
+             :url "https://github.com/pyrmont/testament"
+             :prefix "deps/testament"
+             :paths ["lib/testament.janet"
+                     "init.janet"
+                     "LICENSE"]}]
+ :artifacts {:libraries [{:prefix "honeycut"
+                          :paths ["lib"
+                                  "init.janet"]}]}}

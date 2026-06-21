@@ -115,7 +115,7 @@
   (def n (z/node cz))
   (def kids (slice n 1))
   (def lead (take-while trivia-node? kids))
-  (def lead-text (string/join (map |(in $ 1) lead)))
+  (def lead-text (string/join (map (fn [x] (in x 1)) lead)))
   (def lines (string/split "\n" lead-text))
   (if (one? (length lines))
     (+ (z/column-of cz) (length (get open-delims (first n))) (length lead-text))

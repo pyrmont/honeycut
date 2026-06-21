@@ -7,12 +7,12 @@
 ###
 ### This module re-exports the two everyday tiers:
 ###
-###   - parsing  - `parse` and `generate` (the lossless reader/writer)
+###   - parsing  - `parse` and `render` (the lossless reader/writer)
 ###   - data     - `get`, `put`, `update`, `add` and `remove` (editing by path)
 ###
-### The lower-level zipper that powers the data tier lives in `lib/zip`, and the
+### The lower-level zipper that powers the data tier lives in `lib/zipper`, and the
 ### value pretty-printer in `lib/format`, for callers that need direct
 ### structural control.
 
-(import ./lib/parse :prefix "" :export true)
+(import ./lib/parser :prefix "" :export true)
 (import ./lib/data :prefix "" :export true)

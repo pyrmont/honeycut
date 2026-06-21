@@ -1,8 +1,8 @@
 ### Lossless reader/writer for Janet source
 ###
 ### `parse` turns a string of Janet source into a tree that preserves every
-### byte (including whitespace and comments); `generate` turns such a tree back
-### into source. The two are inverses: (generate (parse src)) reproduces src.
+### byte (including whitespace and comments); `render` turns such a tree back
+### into source. The two are inverses: (render (parse src)) reproduces src.
 ###
 ### A node is a tuple of the form [type & rest]:
 ###
@@ -148,7 +148,7 @@
   Parses a string of Janet `src` into a lossless tree
 
   Returns the root node, an array of the form `@[:code & children]`. Whitespace
-  and comments are preserved as nodes, so that `generate` can reproduce `src`
+  and comments are preserved as nodes, so that `render` can reproduce `src`
   exactly. An optional `start` index (default 0) sets the byte offset at which
   to begin parsing.
 
@@ -160,50 +160,50 @@
     @[:code ;captures]
     @[:code]))
 
-# Generating
+# Rendering
 
-(defn- gen*
+(defn- render*
   [node buf]
   (case (first node)
-    :code (each child (drop 1 node) (gen* child buf))
+    :code (each child (drop 1 node) (render* child buf))
     :array (do (buffer/push-string buf "@(")
-               (each child (drop 1 node) (gen* child buf))
+               (each child (drop 1 node) (render* child buf))
                (buffer/push-string buf ")"))
     :tuple (do (buffer/push-string buf "(")
-               (each child (drop 1 node) (gen* child buf))
+               (each child (drop 1 node) (render* child buf))
                (buffer/push-string buf ")"))
     :bracket-array (do (buffer/push-string buf "@[")
-                       (each child (drop 1 node) (gen* child buf))
+                       (each child (drop 1 node) (render* child buf))
                        (buffer/push-string buf "]"))
     :bracket-tuple (do (buffer/push-string buf "[")
-                       (each child (drop 1 node) (gen* child buf))
+                       (each child (drop 1 node) (render* child buf))
                        (buffer/push-string buf "]"))
     :table (do (buffer/push-string buf "@{")
-               (each child (drop 1 node) (gen* child buf))
+               (each child (drop 1 node) (render* child buf))
                (buffer/push-string buf "}"))
     :struct (do (buffer/push-string buf "{")
-                (each child (drop 1 node) (gen* child buf))
+                (each child (drop 1 node) (render* child buf))
                 (buffer/push-string buf "}"))
     :fn (do (buffer/push-string buf "|")
-            (each child (drop 1 node) (gen* child buf)))
+            (each child (drop 1 node) (render* child buf)))
     :quasiquote (do (buffer/push-string buf "~")
-                    (each child (drop 1 node) (gen* child buf)))
+                    (each child (drop 1 node) (render* child buf)))
     :quote (do (buffer/push-string buf "'")
-               (each child (drop 1 node) (gen* child buf)))
+               (each child (drop 1 node) (render* child buf)))
     :splice (do (buffer/push-string buf ";")
-                (each child (drop 1 node) (gen* child buf)))
+                (each child (drop 1 node) (render* child buf)))
     :unquote (do (buffer/push-string buf ",")
-                 (each child (drop 1 node) (gen* child buf)))
+                 (each child (drop 1 node) (render* child buf)))
     # atoms: emit literal text
     (buffer/push-string buf (in node 1))))
 
-(defn generate
+(defn render
   ```
-  Generates Janet source from a `tree` produced by `parse`
+  Renders Janet source from a `tree` produced by `parse`
 
-  Returns a string. `(generate (parse src))` reproduces `src` exactly.
+  Returns a string. `(render (parse src))` reproduces `src` exactly.
   ```
   [tree]
   (def buf @"")
-  (gen* tree buf)
+  (render* tree buf)
   (string buf))

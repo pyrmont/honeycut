@@ -1,7 +1,7 @@
 (use ../deps/testament)
 
-(import ../lib/parse :as p)
-(import ../lib/zip :as z)
+(import ../lib/parser :as p)
+(import ../lib/zipper :as z)
 
 (deftest navigation-and-value
   (def z0 (z/zip (p/parse "[:a :b :c]")))
@@ -30,21 +30,21 @@
 
 (deftest sibling-edits
   (def a (-> (z/zip (p/parse "[:a :b :c]")) z/down z/down-skip))
-  (is (== "[:x :b :c]" (p/generate (z/root (z/replace a [:keyword ":x"])))))
-  (is (== "[:a:z :b :c]" (p/generate (z/root (z/insert-right a [:keyword ":z"])))))
-  (is (== "[:z:a :b :c]" (p/generate (z/root (z/insert-left a [:keyword ":z"])))))
-  (is (== "[:a  :c]" (p/generate (z/root (z/remove (z/right-skip a)))))))
+  (is (== "[:x :b :c]" (p/render (z/root (z/replace a [:keyword ":x"])))))
+  (is (== "[:a:z :b :c]" (p/render (z/root (z/insert-right a [:keyword ":z"])))))
+  (is (== "[:z:a :b :c]" (p/render (z/root (z/insert-left a [:keyword ":z"])))))
+  (is (== "[:a  :c]" (p/render (z/root (z/remove (z/right-skip a)))))))
 
 (deftest child-edits
   (def bt (-> (z/zip (p/parse "[:a]")) z/down))
-  (is (== "[:a:z]" (p/generate (z/root (z/append-child bt [:keyword ":z"])))))
-  (is (== "[:z:a]" (p/generate (z/root (z/insert-child bt [:keyword ":z"])))))
+  (is (== "[:a:z]" (p/render (z/root (z/append-child bt [:keyword ":z"])))))
+  (is (== "[:z:a]" (p/render (z/root (z/insert-child bt [:keyword ":z"])))))
   (is (== 1 (length (z/children bt)))))
 
 (deftest edit-with-function
   (def n (-> (z/zip (p/parse "[1 2]")) z/down z/down-skip))
   (defn bump [node] [:number (string (inc (scan-number (get node 1))))])
-  (is (== "[2 2]" (p/generate (z/root (z/edit n bump))))))
+  (is (== "[2 2]" (p/render (z/root (z/edit n bump))))))
 
 (deftest depth-first-walk
   (def z0 (z/zip (p/parse "[:a]")))
@@ -72,6 +72,6 @@
 
 (deftest untouched-round-trip
   (def src "{:a {:b [1 2 3]}\n # c\n :d \"e\"}")
-  (is (= src (p/generate (z/root (z/zip (p/parse src)))))))
+  (is (= src (p/render (z/root (z/zip (p/parse src)))))))
 
 (run-tests!)

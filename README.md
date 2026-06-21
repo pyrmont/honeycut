@@ -48,12 +48,12 @@ Honeycut's retrieval and insertion API deliberately shadows core names like
 # edit a value and write the tree back to text
 (-> tree
     (h/put [:version] "0.2.0")
-    (h/generate))
+    (h/render))
 # => "{:name \"honeycut\"\n :version \"0.2.0\"}\n"
 ```
 
-Parsing and generating (`h/parse` and `h/generate`) is lossless:
-`(h/generate (h/parse src))` reproduces `src` exactly. Data retrieval
+Parsing and rendering (`h/parse` and `h/render`) is lossless:
+`(h/render (h/parse src))` reproduces `src` exactly. Data retrieval
 and insertion (`h/get`, `h/put`, `h/update`, `h/add` and `h/remove`) reads and
 edits the tree by key path, where a path segment is a key inside a struct/table
 or a 0-based index inside a tuple/array.

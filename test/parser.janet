@@ -1,6 +1,6 @@
 (use ../deps/testament)
 
-(import ../lib/parse :as p)
+(import ../lib/parser :as p)
 
 (deftest round-trip
   (def cases
@@ -20,7 +20,7 @@
      ":keyword some-symbol nil true false"
      "  \n\t\r\n "])
   (each src cases
-    (is (= src (p/generate (p/parse src))) src)))
+    (is (= src (p/render (p/parse src))) src)))
 
 (deftest node-shape
   (def t (p/parse "(+ 1)"))
@@ -38,19 +38,19 @@
   (is (== ":foo" (get kw 1)))
   (is (== 2 (length kw))))
 
-(deftest generate-from-built-nodes
-  (is (== ":a" (p/generate [:keyword ":a"])))
-  (is (== "[:a :b]" (p/generate [:bracket-tuple
+(deftest render-from-built-nodes
+  (is (== ":a" (p/render [:keyword ":a"])))
+  (is (== "[:a :b]" (p/render [:bracket-tuple
                                  [:keyword ":a"]
                                  [:whitespace " "]
                                  [:keyword ":b"]])))
-  (is (== "@{:x 1}" (p/generate [:table
+  (is (== "@{:x 1}" (p/render [:table
                                  [:keyword ":x"]
                                  [:whitespace " "]
                                  [:number "1"]]))))
 
 (deftest comments-and-whitespace-preserved
   (def src "(a   b\n  # a comment\n  c)")
-  (is (= src (p/generate (p/parse src)))))
+  (is (= src (p/render (p/parse src)))))
 
 (run-tests!)

@@ -15,7 +15,7 @@
 ###
 ### The root zloc's state is the empty struct.
 
-(import ./parse)
+(import ./parser)
 
 # Node kinds that can hold children
 
@@ -373,22 +373,22 @@
   ```
   Returns the Janet value represented by the node at `zloc`
 
-  The node is generated back to source and parsed, so a `:keyword` node yields a
+  The node is rendered back to source and parsed, so a `:keyword` node yields a
   keyword, a `:struct` node yields a struct, and so on.
   ```
   [zloc]
-  (parse (parse/generate (node zloc))))
+  (parse (parser/render (node zloc))))
 
 (defn column-of
   ```
   Returns the 1-based column at which the node at `zloc` begins
 
-  The column is measured from the generated text to the node's left, so it is
+  The column is measured from the rendered text to the node's left, so it is
   correct even for nodes inserted by edits (which carry no source location).
   ```
   [zloc]
   (defn prefix [z]
-    (def left (string/join (map |(parse/generate $) (get (state z) :lhs []))))
+    (def left (string/join (map |(parser/render $) (get (state z) :lhs []))))
     (if-let [nl (last (string/find-all "\n" left))]
       (string/slice left (inc nl))
       (if-let [p (up z)]

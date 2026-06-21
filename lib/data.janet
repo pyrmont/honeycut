@@ -11,8 +11,8 @@
 ### hook (a function from a dictionary to its ordered `[key value]` pairs) sets
 ### the order in which dictionary keys are emitted.
 
-(import ./parse)
-(import ./zip :as z)
+(import ./parser)
+(import ./zipper :as z)
 (import ./format :as f)
 
 # Node classification
@@ -37,7 +37,7 @@
 
 (defn- node->value
   [node]
-  (parse (parse/generate node)))
+  (parse (parser/render node)))
 
 (defn- default-order [dict] (sort (pairs dict)))
 
@@ -45,13 +45,13 @@
   [dict key-order]
   (if key-order (key-order dict) (default-order dict)))
 
-(defn- render
+(defn- value->node
   ```
-  Renders `v` as a single node, with continuation lines indented under `indent`
+  Converts `v` into a single node, with continuation lines indented under `indent`
   ```
   [v indent key-order]
   (def src (f/value->source v indent :key-order key-order))
-  (in (parse/parse src) 1))
+  (in (parser/parse src) 1))
 
 # Navigation
 
@@ -131,8 +131,8 @@
   (def new-kids (array ;kids))
   (each [k v] pairs
     (def k-str (f/value->source k "" :key-order key-order))
-    (def k-node (in (parse/parse k-str) 1))
-    (def v-node (render v (spaces (+ (dec col) (length k-str) 1)) key-order))
+    (def k-node (in (parser/parse k-str) 1))
+    (def v-node (value->node v (spaces (+ (dec col) (length k-str) 1)) key-order))
     (if first?
       (do
         (array/push new-kids k-node (ws " ") v-node)
@@ -151,7 +151,7 @@
   (var first? (not (find non-trivia? kids)))
   (def new-kids (array ;kids))
   (each el els
-    (def e-node (render el e-indent key-order))
+    (def e-node (value->node el e-indent key-order))
     (if first?
       (do (array/push new-kids e-node) (set first? false))
       (array/push new-kids (ws (string "\n" e-indent)) e-node)))
@@ -227,7 +227,7 @@
   [tree path v &named key-order]
   (def vz (seek tree path))
   (assertf vz "no value at path %n to replace" path)
-  (def v-node (render v (spaces (dec (z/column-of vz))) key-order))
+  (def v-node (value->node v (spaces (dec (z/column-of vz))) key-order))
   (z/root (z/replace vz v-node)))
 
 (defn update

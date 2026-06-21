@@ -1,9 +1,9 @@
 (use ../deps/testament)
 
-(import ../lib/parse :as p)
+(import ../lib/parser :as p)
 (import ../lib/data :as d)
 
-(defn- edit [src f] (p/generate (f (p/parse src))))
+(defn- edit [src f] (p/render (f (p/parse src))))
 
 (deftest get-values
   (def t (p/parse "@{:name \"x\"\n  :deps [{:name \"a\"} {:name \"b\"}]}"))

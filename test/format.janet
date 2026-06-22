@@ -22,9 +22,9 @@
   (is (== "{:a 1\n    :b 2}" (f/value->source {:a 1 :b 2} "   "))))
 
 (deftest key-order-hook
-  (defn name-first [d] (sort-by (fn [[k]] [(not= k :name) k]) (pairs d)))
-  (is (== "{:name \"x\"\n :tag \"t\"\n :url \"u\"}"
-          (f/value->source {:url "u" :name "x" :tag "t"} "" :key-order name-first))))
+  (defn tag-first [d] (sort-by (fn [[k]] [(not= k :tag) k]) (pairs d)))
+  (is (== "{:tag \"t\"\n :name \"x\"\n :url \"u\"}"
+          (f/value->source {:url "u" :name "x" :tag "t"} "" :key-order tag-first))))
 
 (deftest rejects-functions
   (assert-thrown (f/value->source print "")))

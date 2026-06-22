@@ -10,13 +10,20 @@
 (add tree path v &named key-order)
 ```
 
-Adds the entries of `v` to the collection at `path` in `tree`
+Adds the entries of `v` to the collection at `path` in `tree`, returning the
+new tree
 
-For a struct or table, `v` must be a dictionary and its key-value pairs are
-added. For a tuple or array, `v` must be indexed and its elements are
-appended. Returns the new tree.
+If `path` resolves to a struct or table, `v` must also be a dictionary and
+its key-value pairs are added. If `path` resolves to an array or tuple, `v`
+must be an indexed collection and its elements are appended. The optional
+`:key-order` hook maps any dictionary in `v` to its ordered `[key value]`
+pairs, setting the order in which dictionary keys are emitted when the
+returned tree is rendered (the default sorts them).
 
-[1]: lib/data.janet#L240
+Raises an error if `path` does not resolve to a collection or if `v` is not
+of a matching type.
+
+[1]: lib/data.janet#L244
 
 
 ## get
@@ -52,7 +59,7 @@ to begin parsing.
 
 Raises an error if `src` cannot be parsed.
 
-[3]: lib/parser.janet#L146
+[3]: lib/parser.janet#L125
 
 
 ## put
@@ -64,6 +71,10 @@ Raises an error if `src` cannot be parsed.
 ```
 
 Replaces the value at `path` in `tree` with `v`, returning the new tree
+
+The optional `:key-order` hook maps any dictionary in `v` to its ordered
+`[key value]` pairs, setting the order in which dictionary keys are emitted
+when the returned tree is rendered (the default sorts them).
 
 Raises an error if `path` does not resolve to a value.
 
@@ -83,7 +94,9 @@ Removes the entry at `path` in `tree`, returning the new tree
 The last segment of `path` selects a key (in a struct/table) or an index (in
 a tuple/array). Surrounding separators are tidied up.
 
-[5]: lib/data.janet#L264
+Raises an error if `path` is empty or does not resolve to an entry.
+
+[5]: lib/data.janet#L275
 
 
 ## render
@@ -98,7 +111,7 @@ Renders Janet source from a `tree` produced by `parse`
 
 Returns a string. `(render (parse src))` reproduces `src` exactly.
 
-[6]: lib/parser.janet#L200
+[6]: lib/parser.janet#L179
 
 
 ## update
@@ -111,5 +124,5 @@ Returns a string. `(render (parse src))` reproduces `src` exactly.
 
 Replaces the value at `path` in `tree` with `(f current ;args)`
 
-[7]: lib/data.janet#L233
+[7]: lib/data.janet#L237
 

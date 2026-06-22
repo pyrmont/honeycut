@@ -91,8 +91,8 @@ Raises an error if `path` does not resolve to a value.
 
 Removes the entry at `path` in `tree`, returning the new tree
 
-The last segment of `path` selects a key (in a struct/table) or an index (in
-a tuple/array). Surrounding separators are tidied up.
+The last key of `path` identifies the entry: a key in a struct/table or an
+index in a tuple/array. Surrounding separators are tidied up.
 
 Raises an error if `path` is empty or does not resolve to an entry.
 

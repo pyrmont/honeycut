@@ -52,6 +52,18 @@ Honeycut's retrieval and insertion API deliberately shadows core names like
 # => "{:name \"honeycut\"\n :version \"0.2.0\"}\n"
 ```
 
+A comment travels with the entry it documents. Reordering the keys carries
+each comment along with the entry it sits above:
+
+```janet
+(def src "{:version \"0.1.0\"\n # the package name\n :name \"honeycut\"}\n")
+
+(-> (h/parse src)
+    (h/sort [])
+    (h/render))
+# => "{ # the package name\n :name \"honeycut\"\n :version \"0.1.0\"}\n"
+```
+
 Parsing and rendering (`h/parse` and `h/render`) is lossless:
 `(h/render (h/parse src))` reproduces `src` exactly. Data retrieval
 and insertion (`h/get`, `h/put`, `h/update`, `h/add` and `h/remove`) reads and

@@ -57,9 +57,28 @@
           (edit "{:z 9}"
                 (fn [x] (-> x (d/add [] {:b 2 :a 1}) (d/arrange [])))))))
 
-(deftest arrange-keeps-comments-in-place
-  (is (== "{:a 1\n # note\n :z 9}"
-          (edit "{:z 9\n # note\n :a 1}" (fn [x] (d/arrange x []))))))
+(deftest arrange-moves-leading-comment
+  (is (== "{ # note\n :a 1\n :z 9}"
+          (edit "{:z 9\n # note\n :a 1}" (fn [x] (d/arrange x [])))))
+  (is (== "{ # a1\n # a2\n :a 1\n :z 9}"
+          (edit "{:z 9\n # a1\n # a2\n :a 1}" (fn [x] (d/arrange x []))))))
+
+(deftest arrange-spaces-comment-off-opening-delimiter
+  (is (== "[ # mid\n 1\n 2]" (edit "[2\n # mid\n 1]" (fn [x] (d/arrange x [])))))
+  (is (== "@{ # note\n :a 1\n :c 3}"
+          (edit "@{:c 3\n # note\n :a 1}" (fn [x] (d/arrange x []))))))
+
+(deftest arrange-moves-trailing-comment
+  (is (== "{:a 1\n :z 9 # zed}"
+          (edit "{:z 9 # zed\n :a 1}" (fn [x] (d/arrange x []))))))
+
+(deftest arrange-preserves-blank-line
+  (is (== "{:a 1\n :b 2\n\n :c 3}"
+          (edit "{:c 3\n :b 2\n\n :a 1}" (fn [x] (d/arrange x []))))))
+
+(deftest arrange-detaches-comment-on-blank-line
+  (is (== "{:a 1\n # floats\n\n :c 3}"
+          (edit "{:c 3\n # floats\n\n :a 1}" (fn [x] (d/arrange x []))))))
 
 (deftest arrange-honours-key-order
   (defn name-first [dd] (sort-by (fn [[k]] [(not= k :name) k]) (pairs dd)))

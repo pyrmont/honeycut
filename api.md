@@ -27,7 +27,7 @@ a value in place.
 Raises an error if `path` does not resolve to a collection or if `v` is not
 of a matching type.
 
-[1]: lib/data.janet#L325
+[1]: lib/data.janet#L392
 
 
 ## arrange
@@ -47,13 +47,14 @@ pairs; the default sorts them). For a tuple or array, elements are ordered
 by applying the optional `:by` hook to each element's value (the default is
 the value itself).
 
-Only the entries move: the whitespace and comments separating them keep
-their positions, so a comment between two entries stays in that gap rather
-than travelling with the entry it followed.
+A comment travels with the entry it documents: an own-line comment moves with
+the entry it sits above, and a same-line trailing comment moves with the entry
+it follows. A comment cut off from the next entry by a blank line is treated
+as free-standing and keeps its position, as does the blank-line layout itself.
 
 Raises an error if `path` does not resolve to a collection.
 
-[2]: lib/data.janet#L360
+[2]: lib/data.janet#L427
 
 
 ## get
@@ -69,7 +70,7 @@ Returns the Janet value at `path` in `tree`
 Returns `dflt` (or nil) if `path` is absent. A path present but holding the
 value nil is distinguished from an absent path only by `dflt`.
 
-[3]: lib/data.janet#L290
+[3]: lib/data.janet#L357
 
 
 ## parse
@@ -108,7 +109,7 @@ when the returned tree is rendered (the default sorts them).
 
 Raises an error if `path` does not resolve to a value.
 
-[5]: lib/data.janet#L302
+[5]: lib/data.janet#L369
 
 
 ## remove
@@ -126,7 +127,7 @@ index in a tuple/array. Surrounding separators are tidied up.
 
 Raises an error if `path` is empty or does not resolve to an entry.
 
-[6]: lib/data.janet#L387
+[6]: lib/data.janet#L455
 
 
 ## render
@@ -154,5 +155,5 @@ Returns a string. `(render (parse src))` reproduces `src` exactly.
 
 Replaces the value at `path` in `tree` with `(f current ;args)`
 
-[8]: lib/data.janet#L318
+[8]: lib/data.janet#L385
 

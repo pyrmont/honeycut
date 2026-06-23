@@ -253,6 +253,10 @@
   pairs, setting the order in which dictionary keys are emitted when the
   returned tree is rendered (the default sorts them).
 
+  A key in `v` that is already present in the dictionary at `path` is added a
+  second time rather than overwriting the existing entry; use `put` to replace
+  a value in place.
+
   Raises an error if `path` does not resolve to a collection or if `v` is not
   of a matching type.
   ```

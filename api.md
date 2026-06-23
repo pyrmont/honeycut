@@ -20,6 +20,10 @@ must be an indexed collection and its elements are appended. The optional
 pairs, setting the order in which dictionary keys are emitted when the
 returned tree is rendered (the default sorts them).
 
+A key in `v` that is already present in the dictionary at `path` is added a
+second time rather than overwriting the existing entry; use `put` to replace
+a value in place.
+
 Raises an error if `path` does not resolve to a collection or if `v` is not
 of a matching type.
 
@@ -96,7 +100,7 @@ index in a tuple/array. Surrounding separators are tidied up.
 
 Raises an error if `path` is empty or does not resolve to an entry.
 
-[5]: lib/data.janet#L275
+[5]: lib/data.janet#L279
 
 
 ## render

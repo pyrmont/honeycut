@@ -157,6 +157,87 @@
       (array/push new-kids (ws (string "\n" e-indent)) e-node)))
   (z/replace cz [(first n) ;new-kids]))
 
+(defn- split-entries
+  ```
+  Splits collection children `kids` into leading trivia and a list of entries
+
+  Each entry spans `width` non-trivia nodes (1 for an element, 2 for a
+  key/value pair) and the trivia between them, and carries the trivia that
+  trails it — the separator before the next entry, or the closing trivia for
+  the last entry. Returns `[lead entries]`, where each entry is a struct with
+  `:content` (the entry's own nodes) and `:trail` (the trailing trivia).
+  ```
+  [kids width]
+  (var i 0)
+  (def lead @[])
+  (while (and (< i (length kids)) (trivia-node? (kids i)))
+    (array/push lead (kids i))
+    (++ i))
+  (def entries @[])
+  (while (< i (length kids))
+    (def content @[])
+    (var seen 0)
+    (while (and (< i (length kids)) (< seen width))
+      (def kid (kids i))
+      (array/push content kid)
+      (when (non-trivia? kid) (++ seen))
+      (++ i))
+    (def trail @[])
+    (while (and (< i (length kids)) (trivia-node? (kids i)))
+      (array/push trail (kids i))
+      (++ i))
+    (array/push entries {:content content :trail trail}))
+  [lead entries])
+
+(defn- reorder
+  ```
+  Rebuilds a collection's children from `lead`, the original `entries`, and an
+  `order` of entry indices giving the new sequence
+
+  Entry contents are placed in `order`, but each slot keeps its original
+  trailing trivia, so the whitespace and comments between entries stay where
+  they were rather than travelling with the entry they followed.
+  ```
+  [lead entries order]
+  (def new-kids (array ;lead))
+  (for s 0 (length entries)
+    (each node ((entries (order s)) :content) (array/push new-kids node))
+    (each t ((entries s) :trail) (array/push new-kids t)))
+  new-kids)
+
+(defn- dict-arrange
+  [cz key-order]
+  (def n (z/node cz))
+  (def [lead entries] (split-entries (slice n 1) 2))
+  (if (<= (length entries) 1)
+    cz
+    (do
+      (def kvs
+        (map (fn [e]
+               (def nt (filter non-trivia? (e :content)))
+               [(node->value (first nt)) (node->value (in nt 1))])
+             entries))
+      (def as-dict (struct ;(mapcat |$ kvs)))
+      (def ordered (map first (order-pairs as-dict key-order)))
+      (def order
+        (sort-by (fn [i] [(or (index-of (in (kvs i) 0) ordered) (length ordered)) i])
+                 (range (length entries))))
+      (z/replace cz [(first n) ;(reorder lead entries order)]))))
+
+(defn- ind-arrange
+  [cz by]
+  (def n (z/node cz))
+  (def [lead entries] (split-entries (slice n 1) 1))
+  (if (<= (length entries) 1)
+    cz
+    (do
+      (def by (or by identity))
+      (def vals
+        (map (fn [e] (node->value (first (filter non-trivia? (e :content))))) entries))
+      (def order
+        (sort-by (fn [i] [(by (vals i)) i]) (range (length entries))))
+      (z/replace cz [(first n) ;(reorder lead entries order)]))))
+
 (defn- drop-separator
   ```
   Removes the trivia separating the entry that was at `i` from its neighbours
@@ -274,6 +355,33 @@
       (do
         (assertf (indexed? v) "value for path %n must be a tuple/array" path)
         (ind-add-entries cz v key-order))
+      (errorf "path %n resolves to %n, not a collection" path (node->value n)))))
+
+(defn arrange
+  ```
+  Reorders the entries of the collection at `path` in `tree`, returning the
+  new tree
+
+  For a struct or table, entries are ordered by key using the optional
+  `:key-order` hook (which maps the dictionary to its ordered `[key value]`
+  pairs; the default sorts them). For a tuple or array, elements are ordered
+  by applying the optional `:by` hook to each element's value (the default is
+  the value itself).
+
+  Only the entries move: the whitespace and comments separating them keep
+  their positions, so a comment between two entries stays in that gap rather
+  than travelling with the entry it followed.
+
+  Raises an error if `path` does not resolve to a collection.
+  ```
+  [tree path &named key-order by]
+  (def cz (seek tree path))
+  (assertf cz "no collection at path %n" path)
+  (def n (z/node cz))
+  (z/root
+    (cond
+      (dict-node? n) (dict-arrange cz key-order)
+      (ind-node? n) (ind-arrange cz by)
       (errorf "path %n resolves to %n, not a collection" path (node->value n)))))
 
 (defn remove

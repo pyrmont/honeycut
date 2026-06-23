@@ -50,8 +50,34 @@
           (edit "@{:deps []}"
                 (fn [x] (d/add x [:deps] [{:url "u" :name "a"}] :key-order name-first))))))
 
+(deftest arrange-sorts-dict
+  (is (== "{:a 1\n :b 2\n :z 9}"
+          (edit "{:z 9\n :b 2\n :a 1}" (fn [x] (d/arrange x [])))))
+  (is (== "{:a 1\n :b 2\n :z 9}"
+          (edit "{:z 9}"
+                (fn [x] (-> x (d/add [] {:b 2 :a 1}) (d/arrange [])))))))
+
+(deftest arrange-keeps-comments-in-place
+  (is (== "{:a 1\n # note\n :z 9}"
+          (edit "{:z 9\n # note\n :a 1}" (fn [x] (d/arrange x []))))))
+
+(deftest arrange-honours-key-order
+  (defn name-first [dd] (sort-by (fn [[k]] [(not= k :name) k]) (pairs dd)))
+  (is (== "{:name \"x\"\n :url \"u\"}"
+          (edit "{:url \"u\"\n :name \"x\"}"
+                (fn [x] (d/arrange x [] :key-order name-first))))))
+
+(deftest arrange-sorts-indexed
+  (is (== "[1 2 3]" (edit "[3 1 2]" (fn [x] (d/arrange x [])))))
+  (is (== "[3\n 2\n 1]" (edit "[1\n 2\n 3]" (fn [x] (d/arrange x [] :by -))))))
+
+(deftest arrange-leaves-singletons
+  (is (== "{:a 1}" (edit "{:a 1}" (fn [x] (d/arrange x [])))))
+  (is (== "{}" (edit "{}" (fn [x] (d/arrange x []))))))
+
 (deftest errors
   (assert-thrown (d/put (p/parse "{:a 1}") [:missing] 9))
-  (assert-thrown (d/add (p/parse "{:a 1}") [:a] {:x 1})))
+  (assert-thrown (d/add (p/parse "{:a 1}") [:a] {:x 1}))
+  (assert-thrown (d/arrange (p/parse "{:a 1}") [:a])))
 
 (run-tests!)

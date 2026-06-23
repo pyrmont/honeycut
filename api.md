@@ -1,6 +1,6 @@
 # honeycut API
 
-[add](#add), [get](#get), [parse](#parse), [put](#put), [remove](#remove), [render](#render), [update](#update)
+[add](#add), [arrange](#arrange), [get](#get), [parse](#parse), [put](#put), [remove](#remove), [render](#render), [update](#update)
 
 ## add
 
@@ -27,12 +27,38 @@ a value in place.
 Raises an error if `path` does not resolve to a collection or if `v` is not
 of a matching type.
 
-[1]: lib/data.janet#L244
+[1]: lib/data.janet#L325
+
+
+## arrange
+
+**function**  | [source][2]
+
+```janet
+(arrange tree path &named key-order by)
+```
+
+Reorders the entries of the collection at `path` in `tree`, returning the
+new tree
+
+For a struct or table, entries are ordered by key using the optional
+`:key-order` hook (which maps the dictionary to its ordered `[key value]`
+pairs; the default sorts them). For a tuple or array, elements are ordered
+by applying the optional `:by` hook to each element's value (the default is
+the value itself).
+
+Only the entries move: the whitespace and comments separating them keep
+their positions, so a comment between two entries stays in that gap rather
+than travelling with the entry it followed.
+
+Raises an error if `path` does not resolve to a collection.
+
+[2]: lib/data.janet#L360
 
 
 ## get
 
-**function**  | [source][2]
+**function**  | [source][3]
 
 ```janet
 (get tree path &opt dflt)
@@ -43,12 +69,12 @@ Returns the Janet value at `path` in `tree`
 Returns `dflt` (or nil) if `path` is absent. A path present but holding the
 value nil is distinguished from an absent path only by `dflt`.
 
-[2]: lib/data.janet#L209
+[3]: lib/data.janet#L290
 
 
 ## parse
 
-**function**  | [source][3]
+**function**  | [source][4]
 
 ```janet
 (parse src &opt start)
@@ -63,12 +89,12 @@ to begin parsing.
 
 Raises an error if `src` cannot be parsed.
 
-[3]: lib/parser.janet#L125
+[4]: lib/parser.janet#L125
 
 
 ## put
 
-**function**  | [source][4]
+**function**  | [source][5]
 
 ```janet
 (put tree path v &named key-order)
@@ -82,12 +108,12 @@ when the returned tree is rendered (the default sorts them).
 
 Raises an error if `path` does not resolve to a value.
 
-[4]: lib/data.janet#L221
+[5]: lib/data.janet#L302
 
 
 ## remove
 
-**function**  | [source][5]
+**function**  | [source][6]
 
 ```janet
 (remove tree path)
@@ -100,12 +126,12 @@ index in a tuple/array. Surrounding separators are tidied up.
 
 Raises an error if `path` is empty or does not resolve to an entry.
 
-[5]: lib/data.janet#L279
+[6]: lib/data.janet#L387
 
 
 ## render
 
-**function**  | [source][6]
+**function**  | [source][7]
 
 ```janet
 (render tree)
@@ -115,12 +141,12 @@ Renders Janet source from a `tree` produced by `parse`
 
 Returns a string. `(render (parse src))` reproduces `src` exactly.
 
-[6]: lib/parser.janet#L179
+[7]: lib/parser.janet#L179
 
 
 ## update
 
-**function**  | [source][7]
+**function**  | [source][8]
 
 ```janet
 (update tree path f & args)
@@ -128,5 +154,5 @@ Returns a string. `(render (parse src))` reproduces `src` exactly.
 
 Replaces the value at `path` in `tree` with `(f current ;args)`
 
-[7]: lib/data.janet#L237
+[8]: lib/data.janet#L318
 

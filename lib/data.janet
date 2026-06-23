@@ -272,7 +272,7 @@
   (def body (if (= (get buf 0) (chr "#")) (string " " buf) (string buf)))
   [kind ;(slice (parser/parse body) 1)])
 
-(defn- arrange-collection
+(defn- sort-collection
   ```
   Reorders the entries of the collection at `cz` by `by`, applied to each
   entry's subject
@@ -362,7 +362,7 @@
   dictionary keys are emitted as `v` is rendered: it maps `v`, and every
   dictionary nested within it, to its ordered `[key value]` pairs (the default
   sorts them). It governs only this freshly rendered text; entries already in
-  `tree` keep their order. Use `arrange` to reorder a collection already in the
+  `tree` keep their order. Use `sort` to reorder a collection already in the
   tree.
 
   Raises an error if `path` does not resolve to a value.
@@ -393,7 +393,7 @@
   dictionary keys are emitted as `v` is rendered: it maps `v`, and every
   dictionary nested within it, to its ordered `[key value]` pairs (the default
   sorts them). It governs only this freshly rendered text. The added entries
-  follow those already at `path`, which keep their order; use `arrange` to
+  follow those already at `path`, which keep their order; use `sort` to
   reorder a collection already in the tree.
 
   A key in `v` that is already present in the dictionary at `path` is added a
@@ -419,7 +419,7 @@
         (ind-add-entries cz v key-order))
       (errorf "path %n resolves to %n, not a collection" path (node->value n)))))
 
-(defn arrange
+(defn sort
   ```
   Reorders the entries of the collection at `path` in `tree`, returning the
   new tree
@@ -448,8 +448,8 @@
   (def n (z/node cz))
   (z/root
     (cond
-      (dict-node? n) (arrange-collection cz 2 by)
-      (ind-node? n) (arrange-collection cz 1 by)
+      (dict-node? n) (sort-collection cz 2 by)
+      (ind-node? n) (sort-collection cz 1 by)
       (errorf "path %n resolves to %n, not a collection" path (node->value n)))))
 
 (defn remove

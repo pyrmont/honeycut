@@ -272,37 +272,25 @@
   (def body (if (= (get buf 0) (chr "#")) (string " " buf) (string buf)))
   [kind ;(slice (parser/parse body) 1)])
 
-(defn- dict-arrange
-  [cz key-order]
-  (def n (z/node cz))
-  (def [head entries seps] (parse-collection (slice n 1) 2))
-  (if (<= (length entries) 1)
-    cz
-    (do
-      (def kvs
-        (map (fn [e]
-               (def nt (filter non-trivia? (e :content)))
-               [(node->value (first nt)) (node->value (in nt 1))])
-             entries))
-      (def as-dict (struct ;(mapcat |$ kvs)))
-      (def ordered (map first (order-pairs as-dict key-order)))
-      (def order
-        (sort-by (fn [i] [(or (index-of (in (kvs i) 0) ordered) (length ordered)) i])
-                 (range (length entries))))
-      (z/replace cz (reorder (first n) head entries order seps)))))
+(defn- arrange-collection
+  ```
+  Reorders the entries of the collection at `cz` by `by`, applied to each
+  entry's subject
 
-(defn- ind-arrange
-  [cz by]
+  An entry spans `width` non-trivia nodes; its subject is the first of them — a
+  key for a struct or table, an element for a tuple or array. The original
+  position breaks ties, keeping the sort stable.
+  ```
+  [cz width by]
   (def n (z/node cz))
-  (def [head entries seps] (parse-collection (slice n 1) 1))
+  (def [head entries seps] (parse-collection (slice n 1) width))
   (if (<= (length entries) 1)
     cz
     (do
-      (def by (or by identity))
-      (def vals
+      (def subjects
         (map (fn [e] (node->value (first (filter non-trivia? (e :content))))) entries))
       (def order
-        (sort-by (fn [i] [(by (vals i)) i]) (range (length entries))))
+        (sort-by (fn [i] [(by (subjects i)) i]) (range (length entries))))
       (z/replace cz (reorder (first n) head entries order seps)))))
 
 (defn- drop-separator
@@ -370,9 +358,12 @@
   ```
   Replaces the value at `path` in `tree` with `v`, returning the new tree
 
-  The optional `:key-order` hook maps any dictionary in `v` to its ordered
-  `[key value]` pairs, setting the order in which dictionary keys are emitted
-  when the returned tree is rendered (the default sorts them).
+  As in `add`, the optional `:key-order` hook sets the order in which
+  dictionary keys are emitted as `v` is rendered: it maps `v`, and every
+  dictionary nested within it, to its ordered `[key value]` pairs (the default
+  sorts them). It governs only this freshly rendered text; entries already in
+  `tree` keep their order. Use `arrange` to reorder a collection already in the
+  tree.
 
   Raises an error if `path` does not resolve to a value.
   ```
@@ -396,10 +387,14 @@
 
   If `path` resolves to a struct or table, `v` must also be a dictionary and
   its key-value pairs are added. If `path` resolves to an array or tuple, `v`
-  must be an indexed collection and its elements are appended. The optional
-  `:key-order` hook maps any dictionary in `v` to its ordered `[key value]`
-  pairs, setting the order in which dictionary keys are emitted when the
-  returned tree is rendered (the default sorts them).
+  must be an indexed collection and its elements are appended.
+
+  As in `put`, the optional `:key-order` hook sets the order in which
+  dictionary keys are emitted as `v` is rendered: it maps `v`, and every
+  dictionary nested within it, to its ordered `[key value]` pairs (the default
+  sorts them). It governs only this freshly rendered text. The added entries
+  follow those already at `path`, which keep their order; use `arrange` to
+  reorder a collection already in the tree.
 
   A key in `v` that is already present in the dictionary at `path` is added a
   second time rather than overwriting the existing entry; use `put` to replace
@@ -429,11 +424,15 @@
   Reorders the entries of the collection at `path` in `tree`, returning the
   new tree
 
-  For a struct or table, entries are ordered by key using the optional
-  `:key-order` hook (which maps the dictionary to its ordered `[key value]`
-  pairs; the default sorts them). For a tuple or array, elements are ordered
-  by applying the optional `:by` hook to each element's value (the default is
-  the value itself).
+  Entries are ordered by applying the optional `:by` hook and sorting on the
+  result. For a struct or table `:by` receives each entry's key; for a tuple or
+  array it receives each element. The default is the identity, so dictionaries
+  sort by key and indexed collections sort by element.
+
+  This rearranges entries already in the tree and touches only the collection
+  at `path`; nested collections are left as they are. By contrast, the
+  `:key-order` hook of `add` and `put` sets the order of dictionaries — nested
+  ones included — only as fresh values are rendered.
 
   A comment travels with the entry it documents: an own-line comment moves with
   the entry it sits above, and a same-line trailing comment moves with the entry
@@ -442,14 +441,15 @@
 
   Raises an error if `path` does not resolve to a collection.
   ```
-  [tree path &named key-order by]
+  [tree path &named by]
+  (def by (or by identity))
   (def cz (seek tree path))
   (assertf cz "no collection at path %n" path)
   (def n (z/node cz))
   (z/root
     (cond
-      (dict-node? n) (dict-arrange cz key-order)
-      (ind-node? n) (ind-arrange cz by)
+      (dict-node? n) (arrange-collection cz 2 by)
+      (ind-node? n) (arrange-collection cz 1 by)
       (errorf "path %n resolves to %n, not a collection" path (node->value n)))))
 
 (defn remove

@@ -80,11 +80,11 @@
   (is (== "{:a 1\n # floats\n\n :c 3}"
           (edit "{:c 3\n # floats\n\n :a 1}" (fn [x] (d/arrange x []))))))
 
-(deftest arrange-honours-key-order
-  (defn name-first [dd] (sort-by (fn [[k]] [(not= k :name) k]) (pairs dd)))
+(deftest arrange-honours-by
+  (defn name-first [k] [(not= k :name) k])
   (is (== "{:name \"x\"\n :url \"u\"}"
           (edit "{:url \"u\"\n :name \"x\"}"
-                (fn [x] (d/arrange x [] :key-order name-first))))))
+                (fn [x] (d/arrange x [] :by name-first))))))
 
 (deftest arrange-sorts-indexed
   (is (== "[1 2 3]" (edit "[3 1 2]" (fn [x] (d/arrange x [])))))

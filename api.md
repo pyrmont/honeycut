@@ -15,10 +15,14 @@ new tree
 
 If `path` resolves to a struct or table, `v` must also be a dictionary and
 its key-value pairs are added. If `path` resolves to an array or tuple, `v`
-must be an indexed collection and its elements are appended. The optional
-`:key-order` hook maps any dictionary in `v` to its ordered `[key value]`
-pairs, setting the order in which dictionary keys are emitted when the
-returned tree is rendered (the default sorts them).
+must be an indexed collection and its elements are appended.
+
+As in `put`, the optional `:key-order` hook sets the order in which
+dictionary keys are emitted as `v` is rendered: it maps `v`, and every
+dictionary nested within it, to its ordered `[key value]` pairs (the default
+sorts them). It governs only this freshly rendered text. The added entries
+follow those already at `path`, which keep their order; use `arrange` to
+reorder a collection already in the tree.
 
 A key in `v` that is already present in the dictionary at `path` is added a
 second time rather than overwriting the existing entry; use `put` to replace
@@ -27,7 +31,7 @@ a value in place.
 Raises an error if `path` does not resolve to a collection or if `v` is not
 of a matching type.
 
-[1]: lib/data.janet#L392
+[1]: lib/data.janet#L383
 
 
 ## arrange
@@ -35,17 +39,21 @@ of a matching type.
 **function**  | [source][2]
 
 ```janet
-(arrange tree path &named key-order by)
+(arrange tree path &named by)
 ```
 
 Reorders the entries of the collection at `path` in `tree`, returning the
 new tree
 
-For a struct or table, entries are ordered by key using the optional
-`:key-order` hook (which maps the dictionary to its ordered `[key value]`
-pairs; the default sorts them). For a tuple or array, elements are ordered
-by applying the optional `:by` hook to each element's value (the default is
-the value itself).
+Entries are ordered by applying the optional `:by` hook and sorting on the
+result. For a struct or table `:by` receives each entry's key; for a tuple or
+array it receives each element. The default is the identity, so dictionaries
+sort by key and indexed collections sort by element.
+
+This rearranges entries already in the tree and touches only the collection
+at `path`; nested collections are left as they are. By contrast, the
+`:key-order` hook of `add` and `put` sets the order of dictionaries — nested
+ones included — only as fresh values are rendered.
 
 A comment travels with the entry it documents: an own-line comment moves with
 the entry it sits above, and a same-line trailing comment moves with the entry
@@ -54,7 +62,7 @@ as free-standing and keeps its position, as does the blank-line layout itself.
 
 Raises an error if `path` does not resolve to a collection.
 
-[2]: lib/data.janet#L427
+[2]: lib/data.janet#L422
 
 
 ## get
@@ -70,7 +78,7 @@ Returns the Janet value at `path` in `tree`
 Returns `dflt` (or nil) if `path` is absent. A path present but holding the
 value nil is distinguished from an absent path only by `dflt`.
 
-[3]: lib/data.janet#L357
+[3]: lib/data.janet#L345
 
 
 ## parse
@@ -103,13 +111,16 @@ Raises an error if `src` cannot be parsed.
 
 Replaces the value at `path` in `tree` with `v`, returning the new tree
 
-The optional `:key-order` hook maps any dictionary in `v` to its ordered
-`[key value]` pairs, setting the order in which dictionary keys are emitted
-when the returned tree is rendered (the default sorts them).
+As in `add`, the optional `:key-order` hook sets the order in which
+dictionary keys are emitted as `v` is rendered: it maps `v`, and every
+dictionary nested within it, to its ordered `[key value]` pairs (the default
+sorts them). It governs only this freshly rendered text; entries already in
+`tree` keep their order. Use `arrange` to reorder a collection already in the
+tree.
 
 Raises an error if `path` does not resolve to a value.
 
-[5]: lib/data.janet#L369
+[5]: lib/data.janet#L357
 
 
 ## remove
@@ -155,5 +166,5 @@ Returns a string. `(render (parse src))` reproduces `src` exactly.
 
 Replaces the value at `path` in `tree` with `(f current ;args)`
 
-[8]: lib/data.janet#L385
+[8]: lib/data.janet#L376
 
